@@ -173,6 +173,7 @@ class UserFeedback_Connect {
 			// Activate the plugin silently.
 			$activated = activate_plugin( $plugin_basename, '', $network, true );
 			if ( ! is_wp_error( $activated ) ) {
+				$this->verify_key( $license['key'] );
 				// Pro upgrade successful.
 				$over_time = get_option( 'userfeedback_over_time', array() );
 
@@ -189,6 +190,74 @@ class UserFeedback_Connect {
 			}
 		}
 		wp_send_json_error( $error );
+	}
+
+	private function verify_key( $key ) {
+		// Perform a request to verify the key.
+		$verify = $this->verify_license_remote_request( 'verify-key', $key );
+
+		// If it returns false, send back a generic error message and return.
+		if ( ! $verify ) {
+			return false;
+		}
+
+		// If an error is returned, set the error and return.
+		if ( ! empty( $verify->error ) ) {
+			return false;
+		}
+
+		// Otherwise, our request has been done successfully. Update the option and set the success message.
+		$option                = UserFeedback()->license->get_site_license();
+		$option['key']         = trim( $key );
+		$option['type']        = isset( $verify->type ) ? $verify->type : $option['type'];
+		$option['is_expired']  = false;
+		$option['is_disabled'] = false;
+		$option['is_invalid']  = false;
+		
+		UserFeedback()->license->set_site_license( $option );
+		delete_transient( '_userfeedback_addons' );
+		wp_clean_plugins_cache( true );
+	}
+
+	private function verify_license_remote_request( $action, $key ) {
+		// Build the body of the request.
+		$body = wp_parse_args(
+			array(
+				'tgm-updater-action'     => $action,
+				'tgm-updater-key'        => $key,
+				'tgm-updater-wp-version' => get_bloginfo( 'version' ),
+				'tgm-updater-referer'    => site_url(),
+				'tgm-updater-uf-version' => USERFEEDBACK_VERSION,
+				'tgm-updater-is-pro'     => userfeedback_is_pro_version(),
+			)
+		);
+		$body = http_build_query( $body, '', '&' );
+
+		// Build the headers of the request.
+		$headers = wp_parse_args(
+			array(
+				'Content-Type'   => 'application/x-www-form-urlencoded',
+				'Content-Length' => strlen( $body ),
+			)
+		);
+
+		// Setup variable for wp_remote_post.
+		$post = array(
+			'headers' => $headers,
+			'body'    => $body,
+		);
+		// Perform the query and retrieve the response.
+		$response      = wp_remote_post( userfeedback_get_licensing_url(), $post );
+		$response_code = wp_remote_retrieve_response_code( $response );
+		$response_body = wp_remote_retrieve_body( $response );
+
+		// Bail out early if there are any errors.
+		if ( 200 != $response_code || is_wp_error( $response_body ) ) {
+			return false;
+		}
+
+		// Return the json decoded content.
+		return json_decode( $response_body );
 	}
 }
 
