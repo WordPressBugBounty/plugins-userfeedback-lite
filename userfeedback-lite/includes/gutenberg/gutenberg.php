@@ -32,8 +32,7 @@ if (!class_exists('UserFeedbackGutenberg')) {
 				}
 			}
 
-			wp_enqueue_script( 'lodash', includes_url('js') . '/underscore.min.js', array(), USERFEEDBACK_VERSION, false );
-			$plugins_style_path = '/assets/gutenberg/css/editor.css';
+		$plugins_style_path = '/assets/gutenberg/css/editor.css';
 			$version_path       = userfeedback_is_pro_version() ? 'pro' : 'lite';
 			if ("pro" === $version_path) {
 				$plugins_js_path    = '/assets/gutenberg/js/editor-pro.min.js';
@@ -42,6 +41,7 @@ if (!class_exists('UserFeedbackGutenberg')) {
 			}
 
 			$js_dependencies = array(
+				'lodash',
 				'wp-plugins',
 				'wp-element',
 				'wp-i18n',
@@ -59,7 +59,6 @@ if (!class_exists('UserFeedbackGutenberg')) {
 				!$wp_scripts->query('wp-edit-widgets', 'enqueued') &&
 				!$wp_scripts->query('wp-customize-widgets', 'enqueued')
 			) {
-				$js_dependencies[] = 'wp-editor';
 				$js_dependencies[] = 'wp-edit-post';
 			}
 

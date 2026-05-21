@@ -181,7 +181,7 @@ function userfeedback_ajax_deactivate_addon() {
 	}
 
 	// Deactivate the addon.
-	$post_data = sanitize_post( $_POST, 'raw' );
+	$post_data = $_POST;
 	if ( isset( $post_data['plugin'] ) ) {
 		if ( isset( $post_data['isnetwork'] ) && $post_data['isnetwork'] ) {
 			deactivate_plugins( $post_data['plugin'], false, true );
@@ -214,7 +214,7 @@ function userfeedback_ajax_install_addon() {
 	}
 
 	// Install the addon.
-	$post_data = sanitize_post( $_POST, 'raw' );
+	$post_data = $_POST;
 	if ( isset( $post_data['plugin'] ) ) {
 		$download_url = esc_url_raw(
 			filter_input( INPUT_POST, 'plugin', FILTER_SANITIZE_URL )
@@ -292,7 +292,7 @@ function userfeedback_ajax_activate_addon() {
 	}
 
 	// Activate the addon.
-	$post_data = sanitize_post( $_POST, 'raw' );
+	$post_data = $_POST;
 	if ( isset( $post_data['plugin'] ) ) {
 		if ( isset( $post_data['isnetwork'] ) && $post_data['isnetwork'] ) {
 			$activate = activate_plugin( $post_data['plugin'], null, true );
@@ -374,7 +374,7 @@ function userfeedback_ajax_get_addons() {
 	if ( ! current_user_can( 'userfeedback_save_settings' ) ) {
 		return;
 	}
-	$post_data = sanitize_post( $_POST, 'raw' );
+	$post_data = $_POST;
 	if ( isset( $post_data['network'] ) && intval( $post_data['network'] ) > 0 ) {
 		define( 'WP_NETWORK_ADMIN', true );
 	}

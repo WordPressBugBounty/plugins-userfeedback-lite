@@ -101,16 +101,8 @@ if (!class_exists('UserFeedback_Metabox')) {
 
         private function is_gutenberg_editor()
         {
-            if (function_exists('is_gutenberg_page') && is_gutenberg_page()) {
-                return true;
-            }
-
             $current_screen = get_current_screen();
-            if (method_exists($current_screen, 'is_block_editor') && $current_screen->is_block_editor()) {
-                return true;
-            }
-
-            return false;
+            return is_object($current_screen) && $current_screen->is_block_editor();
         }
 
         public function create_meta_box()

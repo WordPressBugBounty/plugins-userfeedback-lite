@@ -485,8 +485,11 @@ function userfeedback_admin_menu_open_new_tab_script()
 {
     ?>
     <script type="text/javascript">
-        jQuery(document).ready( function($) {
-            $('#suggest_feature_menu').parent().attr('target','_blank');
+        document.addEventListener('DOMContentLoaded', function() {
+            var el = document.getElementById('suggest_feature_menu');
+            if (el && el.parentElement) {
+                el.parentElement.setAttribute('target', '_blank');
+            }
         });
     </script>
     <?php
