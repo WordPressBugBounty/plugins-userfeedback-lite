@@ -280,20 +280,15 @@ function userfeedback_heatmap_preview()
 
 function userfeedback_post_ratings_is_licensed()
 {
-	$slug = 'post-ratings';
-	$addons = userfeedback_get_addons();
-	$licensed_addons = isset($addons['licensed']) ? $addons['licensed'] : array();
-	
-	$is_post_ratings_licensed = false;
+	$slug   = 'post-ratings';
+	$cached = get_option( 'userfeedback_parsed_addons', array() );
+	$addons = ( is_array( $cached ) && ! empty( $cached ) ) ? $cached : userfeedback_get_parsed_addons();
 
-	foreach ($licensed_addons as $addon) {
-		if (isset($addon->slug) && $addon->slug === $slug) {
-			$is_post_ratings_licensed = true;
-			break;
-		}
+	if ( isset( $addons[ $slug ] ) ) {
+		$addon = (array) $addons[ $slug ];
+		return isset( $addon['type'] ) && $addon['type'] === 'licensed';
 	}
-
-	return $is_post_ratings_licensed;
+	return false;
 }
 
 function userfeedback_post_ratings_upsell()
@@ -310,8 +305,9 @@ function userfeedback_screen_is_email_survey()
 
 function userfeedback_email_survey_is_licensed()
 {
-	$slug = 'email-surveys';
-	$addons = userfeedback_get_parsed_addons();
+	$slug   = 'email-surveys';
+	$cached = get_option( 'userfeedback_parsed_addons', array() );
+	$addons = ( is_array( $cached ) && ! empty( $cached ) ) ? $cached : userfeedback_get_parsed_addons();
 
 	$is_email_survey_licensed = false;
 

@@ -526,7 +526,7 @@ function userfeedback_get_common_script_localization_object() {
 			'assets'                    => plugins_url( '/assets/vue', USERFEEDBACK_PLUGIN_FILE ),
 			'uf_assets'                 => plugins_url( '/assets', USERFEEDBACK_PLUGIN_FILE ),
 			'integrations'              => array(),
-			'addons'                    => ! userfeedback_is_pro_version() && ! userfeedback_screen_is_addons() ? array() : userfeedback_get_parsed_addons(),
+			'addons'                    => ! userfeedback_is_pro_version() && ! userfeedback_screen_is_addons() ? array() : ( get_option( 'userfeedback_parsed_addons' ) ?: userfeedback_get_parsed_addons() ),
 			'notices'                   => apply_filters( 'userfeedback_vue_notices', array() ),
 			'wp_notices'                => apply_filters( 'userfeedback_vue_wp_notices', array() ),
 			'widget_settings'           => userfeedback_get_frontend_widget_settings(),
@@ -553,11 +553,13 @@ function userfeedback_save_parsed_addons() {
 		return;
 	}
 
-	$saved_parsed_addons = get_option('userfeedback_parsed_addons', false);
-	if(!$saved_parsed_addons) {
+	$saved_parsed_addons = get_option( 'userfeedback_parsed_addons', false );
+	if ( ! is_array( $saved_parsed_addons ) || empty( $saved_parsed_addons ) ) {
 		$addons = userfeedback_get_parsed_addons();
-		update_option( 'userfeedback_parsed_addons', $addons );
-		$saved_parsed_addons = get_option('userfeedback_parsed_addons');
+		if ( is_array( $addons ) && ! empty( $addons ) ) {
+			update_option( 'userfeedback_parsed_addons', $addons );
+			$saved_parsed_addons = $addons;
+		}
 	}
 	return $saved_parsed_addons;
 }

@@ -24,7 +24,7 @@ if (!class_exists('UserFeedback_Base')) {
 		 * @access public
 		 * @var string $version Plugin version
 		 */
-		public $version = '1.11.2';
+		public $version = '1.11.3';
 
 		/**
 		 * Plugin file.

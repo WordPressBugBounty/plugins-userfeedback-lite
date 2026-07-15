@@ -121,7 +121,7 @@ if (!class_exists('UserFeedbackGutenberg')) {
 					'create_survey_link'           => admin_url('admin.php?page=userfeedback_surveys#/new/setup'),
 					'all_surveys_link'             => admin_url('admin.php?page=userfeedback_surveys'),
 					'isnetwork'                    => is_network_admin(),
-					'addons'                       => ! userfeedback_is_pro_version() ? array() : userfeedback_get_parsed_addons(),
+					'addons'                       => ! userfeedback_is_pro_version() ? array() : ( get_option( 'userfeedback_parsed_addons' ) ?: userfeedback_get_parsed_addons() ),
 					'surveys'                      => $survey_options
 				))
 			);
