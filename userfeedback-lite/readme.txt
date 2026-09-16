@@ -4,7 +4,7 @@ Donate link: http://www.wpbeginner.com/wpbeginner-needs-your-help/
 Tags: analytics,feedback,surveys,user feedback, website feedback,heatmaps
 Requires at least: 5.9.0
 Tested Up To: 7.0
-Stable tag: 1.11.4
+Stable tag: 1.12.0
 Requires PHP: 5.6
 License: GPL v3
 
@@ -119,6 +119,17 @@ For documentation, tutorials, FAQ and videos check out: [UserFeedback Documentat
 4. Want more features? <a href=href="https://www.userFeedback.com/?utm_source=wprepo&utm_medium=link&utm_campaign=lite" rel="friend" title="UserFeedback">Purchase UserFeedback Pro</a>!
 
 == Changelog ==
+= 1.12.0: September 16, 2026 =
+- New: You can now show the comment box only when specific answers are selected.
+- New: You can now customize the low and high score labels on Net Promoter Score questions.
+- Fixed: Survey widget and admin translations now reach the browser, so built-in text appears in your language.
+- Fixed: The "Show Specific Survey" setting now explains that the Targeting addon is required instead of being silently disabled.
+- Fixed: Opening a response that belongs to a different survey no longer shows a blank screen.
+- Fixed: Admin screens no longer get stuck loading when a network request fails.
+- Fixed: The comment box no longer appears before a question has been answered.
+- Fixed: The comment box now appears on Image Radio and Icon Choice questions, where it previously never showed.
+- Fixed: Choosing a score of 0 no longer hides the follow-up comment box.
+
 = 1.11.4: September 3, 2026 =
 - Fixed: Deactivating the Heatmaps addon no longer causes a fatal error when UserFeedback Pro is inactive.
 - Fixed: Network-activating UserFeedback Premium no longer causes a fatal error on multisite when Lite is active on individual sites.

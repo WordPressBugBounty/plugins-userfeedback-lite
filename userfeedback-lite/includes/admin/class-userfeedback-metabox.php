@@ -176,29 +176,12 @@ if (!class_exists('UserFeedback_Metabox')) {
                 </div>
             </div>
 
-            <?php if (!userfeedback_is_pro_version()) { ?>
-                <div class="userfeedback-metabox-pro-badge">
-                    <span>
-                        <svg width="15" height="14" viewBox="0 0 15 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M6.57617 1.08203L4.92578 4.45898L1.19336 4.99219C0.533203 5.09375 0.279297 5.90625 0.761719 6.38867L3.42773 9.00391L2.79297 12.6855C2.69141 13.3457 3.40234 13.8535 3.98633 13.5488L7.3125 11.7969L10.6133 13.5488C11.1973 13.8535 11.9082 13.3457 11.8066 12.6855L11.1719 9.00391L13.8379 6.38867C14.3203 5.90625 14.0664 5.09375 13.4062 4.99219L9.69922 4.45898L8.02344 1.08203C7.74414 0.498047 6.88086 0.472656 6.57617 1.08203Z" fill="#31862D" />
-                        </svg>
-                        <?php esc_html_e('This is a PRO feature.', 'userfeedback-lite'); ?>
-                    </span>
-                    <div class="userfeedback-metabox-pro-badge-upgrade">
-                        <a href="<?php echo esc_url( userfeedback_get_upgrade_link('disable-all-surveys', 'lite-metabox', "https://www.userfeedback.com/lite/") );
-                                    ?>" target="_blank" rel="noopener">
-                            <?php esc_html_e('Upgrade', 'userfeedback-lite'); ?>
-                        </a>
-                    </div>
-                </div>
-            <?php } ?>
-
             <!-- show specific survey -->
             <div class="userfeedback-metabox" id="userfeedback-metabox-specific-survey">
                 <div class="userfeedback-metabox-input-select">
                     <label class="">
                         <div class="userfeedback-metabox-label"><?php esc_html_e('Show Specific Survey', 'userfeedback-lite') ?></div>
-                        <select name="_uf_show_specific_survey" <?php disabled(!userfeedback_is_pro_version() || !$addons['targeting']->active); ?>>
+                        <select name="_uf_show_specific_survey" <?php disabled(!userfeedback_is_pro_version() || empty($addons['targeting']) || !$addons['targeting']->active); ?>>
                             <?php
                             foreach ($survey_options as $survey) {
                                 echo '<option value="' . esc_attr($survey['value']) . '" ' . selected( $specific_survey, $survey['value'], false ) . '>' . esc_html($survey['label']) . '</option>';
@@ -221,7 +204,7 @@ if (!class_exists('UserFeedback_Metabox')) {
 								d="M6.57617 1.08203L4.92578 4.45898L1.19336 4.99219C0.533203 5.09375 0.279297 5.90625 0.761719 6.38867L3.42773 9.00391L2.79297 12.6855C2.69141 13.3457 3.40234 13.8535 3.98633 13.5488L7.3125 11.7969L10.6133 13.5488C11.1973 13.8535 11.9082 13.3457 11.8066 12.6855L11.1719 9.00391L13.8379 6.38867C14.3203 5.90625 14.0664 5.09375 13.4062 4.99219L9.69922 4.45898L8.02344 1.08203C7.74414 0.498047 6.88086 0.472656 6.57617 1.08203Z"
 								fill="#31862D"/>
                             </svg>
-                            <?php esc_html_e( 'Page Targeting is a Pro feature.', 'userfeedback-lite' ); ?>
+                            <?php esc_html_e( 'This is a PRO feature.', 'userfeedback-lite' ); ?>
                         </span>
 					<div class="userfeedback-metabox-pro-badge-upgrade">
 						<a href="<?php echo esc_url( userfeedback_get_upgrade_link( 'show-specific-survey', 'lite-metabox', "https://www.userfeedback.com/lite/" ) ); ?>"
@@ -232,7 +215,7 @@ if (!class_exists('UserFeedback_Metabox')) {
 				</div>
 			<?php } ?>
             
-            <?php if ( userfeedback_is_pro_version() && isset($addons['targeting']) && !$addons['targeting']->active ) { 
+            <?php if ( userfeedback_is_pro_version() && ( empty($addons['targeting']) || !$addons['targeting']->active ) ) {
                 ?>
 				<div class="userfeedback-metabox-pro-badge">
                         <span>

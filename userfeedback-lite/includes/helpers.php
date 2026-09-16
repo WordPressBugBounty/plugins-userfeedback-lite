@@ -579,9 +579,179 @@ function userfeedback_is_tracking_allowed()
 	return (bool) userfeedback_get_option('allow_usage_tracking', false);
 }
 
+/**
+ * The Jed payload header for a text domain.
+ *
+ * Jed carries its metadata under the empty-string key. Split out so the full
+ * payload and the widget payload cannot drift apart.
+ *
+ * @since 1.11.4
+ *
+ * @param  string $domain       Translation domain.
+ * @param  object $translations Translations object for that domain.
+ *
+ * @return array
+ */
+function userfeedback_get_jed_locale_header($domain, $translations)
+{
+	$header = array(
+		'domain' => $domain,
+		// Must be the same call the textdomain loader resolves the .mo with,
+		// or a logged-in visitor whose profile language differs from the site
+		// language gets one locale's strings under the other locale's plural
+		// rules. determine_locale() is what WordPress itself uses for
+		// just-in-time translation loading.
+		'lang'   => determine_locale(),
+	);
+
+	if (!empty($translations->headers['Plural-Forms'])) {
+		$header['plural_forms'] = $translations->headers['Plural-Forms'];
+	}
+
+	return $header;
+}
+
+/**
+ * Returns Jed-formatted localization data for a text domain.
+ *
+ * Note that the entry list must be keyed by msgid, not by the array index of
+ * the entry. Since WP 6.5 the default l10n backend is WP_Translations, whose
+ * `entries` property returns a numerically indexed *list* of Translation_Entry
+ * objects rather than the msgid-keyed map the old MO class returned. Reading
+ * the key instead of the entry produces a payload keyed 0, 1, 2, ... which
+ * @wordpress/i18n can never match against, so every string falls back to its
+ * msgid. Building the key from the entry itself works on both backends.
+ *
+ * @since 1.11.4
+ *
+ * @param  string $domain Translation domain.
+ *
+ * @return array
+ */
+function userfeedback_get_jed_locale_data($domain)
+{
+	$translations = get_translations_for_domain($domain);
+
+	$locale = array(
+		'' => userfeedback_get_jed_locale_header($domain, $translations),
+	);
+
+	foreach ($translations->entries as $entry) {
+		// Duck-typed rather than checked against Translation_Entry, so a
+		// replacement l10n backend cannot make this throw.
+		if (!is_object($entry) || empty($entry->singular)) {
+			continue;
+		}
+
+		// Jed keys a contextualised string as "context\4msgid".
+		$msgid = empty($entry->context)
+			? $entry->singular
+			: $entry->context . "\4" . $entry->singular;
+
+		$locale[$msgid] = array_values((array) $entry->translations);
+	}
+
+	return $locale;
+}
+
+/**
+ * The msgids the survey widget renders itself on the front end.
+ *
+ * Everything else a visitor sees (question titles, the thank-you message) comes
+ * from the database and is not translated through gettext. The widget payload
+ * is inlined on every page that renders a survey, so it ships this list rather
+ * than the whole .mo, which runs to well over 100KB on a translated locale.
+ *
+ * Singular msgids only: the payload is built with a direct lookup per msgid
+ * rather than a walk of the .mo, and that returns a single form per entry.
+ *
+ * @since 1.11.4
+ *
+ * @return string[]
+ */
+function userfeedback_get_widget_translation_strings()
+{
+	/**
+	 * Filter: 'userfeedback_widget_translation_strings'
+	 *
+	 * Add-ons that render their own widget components should append their
+	 * msgids here, otherwise those strings are not sent to the browser.
+	 * Singular msgids only - a plural entry would be sent with just its
+	 * first form.
+	 *
+	 * @since 1.11.4
+	 *
+	 * @param string[] $strings Msgids to send to the survey widget.
+	 */
+	return apply_filters(
+		'userfeedback_widget_translation_strings',
+		array(
+			// UserFeedbackWidget.
+			'Close',
+			'Next',
+			'Skip',
+			'Thanks for your feedback!',
+			'UserFeedback logo',
+			// WidgetText, WidgetLongText.
+			'Type your answer here...',
+			// WidgetEmail.
+			'Email Address',
+			'First Name',
+			// Question Types add-on: WidgetNps, QuestionCommentBox.
+			'Anything to add?',
+			'Extremely Likely',
+			'Not Likely',
+		)
+	);
+}
+
+/**
+ * Jed-formatted localization data for the survey widget.
+ *
+ * Looks each allowlisted msgid up directly instead of building the full payload
+ * and discarding all but a dozen keys. That matters here: reading
+ * WP_Translations::$entries rebuilds every Translation_Entry in the .mo on each
+ * access, and this runs on every front-end page view that renders a survey.
+ *
+ * @since 1.11.4
+ *
+ * @return array
+ */
+function userfeedback_get_widget_jed_locale_data()
+{
+	$domain       = 'userfeedback-lite';
+	$translations = get_translations_for_domain($domain);
+
+	$locale = array(
+		'' => userfeedback_get_jed_locale_header($domain, $translations),
+	);
+
+	foreach (userfeedback_get_widget_translation_strings() as $msgid) {
+		if (!is_string($msgid) || '' === $msgid) {
+			continue;
+		}
+
+		$translation = $translations->translate($msgid);
+
+		// An untranslated msgid comes back unchanged. Sending it would add
+		// bytes to the payload without changing what the visitor sees.
+		if (!is_string($translation) || '' === $translation || $translation === $msgid) {
+			continue;
+		}
+
+		$locale[$msgid] = array($translation);
+	}
+
+	return $locale;
+}
+
 if (!function_exists('wp_get_jed_locale_data')) {
 	/**
-	 * Returns Jed-formatted localization data. Polyfill for pre-WP 7.0.
+	 * Returns Jed-formatted localization data.
+	 *
+	 * Kept for backwards compatibility with add-ons that call it. Prefer
+	 * userfeedback_get_jed_locale_data(), which cannot be shadowed by another
+	 * plugin defining this global name first.
 	 *
 	 * @param  string $domain Translation domain.
 	 *
@@ -589,24 +759,7 @@ if (!function_exists('wp_get_jed_locale_data')) {
 	 */
 	function wp_get_jed_locale_data($domain)
 	{
-		$translations = get_translations_for_domain($domain);
-
-		$locale = array(
-			'' => array(
-				'domain' => $domain,
-				'lang'   => is_admin() ? get_user_locale() : get_locale(),
-			),
-		);
-
-		if (!empty($translations->headers['Plural-Forms'])) {
-			$locale['']['plural_forms'] = $translations->headers['Plural-Forms'];
-		}
-
-		foreach ($translations->entries as $msgid => $entry) {
-			$locale[$msgid] = $entry->translations;
-		}
-
-		return $locale;
+		return userfeedback_get_jed_locale_data($domain);
 	}
 }
 

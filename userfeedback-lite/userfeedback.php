@@ -5,11 +5,11 @@
  * Plugin URI: https://www.userfeedback.com/lite?utm_source=liteplugin&utm_medium=pluginlist
  * Description: See what your analytics software isn’t telling you with powerful UserFeedback surveys.
  * Author: UserFeedback Team
- * Version: 1.11.4
+ * Version: 1.12.0
  * Requires PHP: 7.4
  * Requires at least: 5.9.0
  * Author URI: https://userfeedback.com/lite
- * Text Domain: userfeedback
+ * Text Domain: userfeedback-lite
  * Domain Path: /languages
  * License: GPL-2.0+
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -38,6 +38,14 @@ require_once 'userfeedback-base.php';
  */
 final class UserFeedback_Lite extends UserFeedback_Base {
 
+
+	/**
+	 * @inheritdoc
+	 *
+	 * Must stay identical to the `Version:` plugin header above -- the release
+	 * build reads both from this file and fails when they disagree.
+	 */
+	public $version = '1.12.0';
 
 	/**
 	 * @inheritdoc

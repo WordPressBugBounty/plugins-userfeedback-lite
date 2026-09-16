@@ -20,11 +20,24 @@ if (!class_exists('UserFeedback_Base')) {
 		/**
 		 * Plugin version, used for cache-busting of style and script file references.
 		 *
+		 * DECLARED HERE, ASSIGNED BY THE CONCRETE PLUGIN. Each entry file
+		 * (`userfeedback.php`, `userfeedback-premium.php`) sets this next to its own
+		 * `Version:` plugin header, so the two live in one file and cannot drift.
+		 *
+		 * That is not a style preference: the release build reads the version from
+		 * the entry file and requires the header and this property to be identical,
+		 * failing the build when they disagree. Holding the value here instead --
+		 * one file away from the header nothing checks it against -- is what let a
+		 * mismatch ship silently before. The header drives the wordpress.org update
+		 * notice; this property drives in-plugin upgrade routines and asset
+		 * cache-busting, so a divergence tells users one version while they run
+		 * another.
+		 *
 		 * @since 1.0.0
 		 * @access public
 		 * @var string $version Plugin version
 		 */
-		public $version = '1.11.4';
+		public $version;
 
 		/**
 		 * Plugin file.
@@ -251,35 +264,54 @@ if (!class_exists('UserFeedback_Base')) {
 		 */
 		public function load_plugin_textdomain()
 		{
-			$uf_locale = get_user_locale();
+			$uf_domain = 'userfeedback-lite';
+
+			// Not get_user_locale(): that returns the profile language on the
+			// front end too, so a logged-in visitor would load a different .mo
+			// than userfeedback_get_jed_locale_header() reports to Jed.
+			$uf_locale = determine_locale();
 
 			// Load Translation files
 			// Traditional WordPress plugin locale filter.
-			$uf_locale = apply_filters('plugin_locale', $uf_locale, 'userfeedback');
-			$uf_mofile = sprintf('%1$s-%2$s.mo', 'userfeedback', $uf_locale);
+			$uf_locale = apply_filters('plugin_locale', $uf_locale, $uf_domain);
 
-			// Look for wp-content/languages/userfeedback/userfeedback-{lang}_{country}.mo
-			$uf_mofile1 = WP_LANG_DIR . '/userfeedback/' . $uf_mofile;
+			/*
+			 * File name prefixes to accept, most specific first.
+			 *
+			 * The translation pack on wordpress.org is published under the Lite
+			 * slug, so it installs as userfeedback-lite-{locale}.mo. Pro is not
+			 * on wordpress.org and never receives a pack of its own, so it also
+			 * accepts the Lite file. Without this, a Pro site that downloads the
+			 * community translation sees no effect at all.
+			 */
+			$uf_prefixes = array_unique(array($uf_domain, 'userfeedback', 'userfeedback-lite'));
 
-			// Look in wp-content/languages/plugins/userfeedback/userfeedback-{lang}_{country}.mo
-			$uf_mofile2 = WP_LANG_DIR . '/plugins/userfeedback/' . $uf_mofile;
+			$uf_dirs = array(
+				// wp-content/languages/userfeedback/
+				WP_LANG_DIR . '/userfeedback/',
+				// wp-content/languages/plugins/userfeedback/
+				WP_LANG_DIR . '/plugins/userfeedback/',
+				// wp-content/languages/plugins/
+				WP_LANG_DIR . '/plugins/',
+			);
 
-			// Look in wp-content/languages/plugins/userfeedback-{lang}_{country}.mo
-			$uf_mofile3 = WP_LANG_DIR . '/plugins/' . $uf_mofile;
+			foreach ($uf_prefixes as $uf_prefix) {
+				$uf_mofile = sprintf('%1$s-%2$s.mo', $uf_prefix, $uf_locale);
+
+				foreach ($uf_dirs as $uf_dir) {
+					if (file_exists($uf_dir . $uf_mofile)) {
+						load_textdomain($uf_domain, $uf_dir . $uf_mofile);
+
+						return;
+					}
+				}
+			}
 
 			// Look in wp-content/plugins/userfeedback/languages/userfeedback-{lang}_{country}.mo
-			$uf_mofile4 = dirname(plugin_basename(USERFEEDBACK_PLUGIN_FILE)) . '/languages/';
-			$uf_mofile4 = apply_filters('userfeedback_languages_directory', $uf_mofile4);
+			$uf_languages_dir = dirname(plugin_basename(USERFEEDBACK_PLUGIN_FILE)) . '/languages/';
+			$uf_languages_dir = apply_filters('userfeedback_languages_directory', $uf_languages_dir);
 
-			if (file_exists($uf_mofile1)) {
-				load_textdomain('userfeedback', $uf_mofile1);
-			} elseif (file_exists($uf_mofile2)) {
-				load_textdomain('userfeedback', $uf_mofile2);
-			} elseif (file_exists($uf_mofile3)) {
-				load_textdomain('userfeedback', $uf_mofile3);
-			} else {
-				load_plugin_textdomain( 'userfeedback', false, $uf_mofile4 ); // phpcs:ignore PluginCheck.CodeAnalysis.DiscouragedFunctions.load_plugin_textdomainFound -- Intentional fallback for custom language file directories.
-			}
+			load_plugin_textdomain( $uf_domain, false, $uf_languages_dir ); // phpcs:ignore PluginCheck.CodeAnalysis.DiscouragedFunctions.load_plugin_textdomainFound -- Intentional fallback for custom language file directories.
 		}
 
 		/**

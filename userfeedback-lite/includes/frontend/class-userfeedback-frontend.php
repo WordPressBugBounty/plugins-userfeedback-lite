@@ -963,6 +963,7 @@ class UserFeedback_Frontend
 				'use_survey'         => $survey,
 				'addons'             => array(),
 				'widget_settings'    => userfeedback_get_frontend_widget_settings(),
+				'translations'       => userfeedback_get_widget_jed_locale_data(),
 			)
 		);
 
@@ -1010,6 +1011,7 @@ class UserFeedback_Frontend
 					'show_specific_survey' => userfeedback_show_specific_survey(),
 					'is_singular' => is_singular(),
 					'is_clarity_active' => function_exists( 'clarity_on_activation' ),
+					'translations' => userfeedback_get_widget_jed_locale_data(),
 				)
 			);
 
@@ -1043,8 +1045,8 @@ class UserFeedback_Frontend
 	{
 		// Get banner configuration with filter for customization
 		$config = apply_filters('userfeedback_exclusion_banner_config', array(
-			'title'          => __('Survey is Hidden for Administrators', 'userfeedback'),
-			'message'        => __('Surveys are hidden for administrator accounts to keep your survey results accurate. To see surveys on your site, use an incognito window or log out.', 'userfeedback')
+			'title'          => __('Survey is Hidden for Administrators', 'userfeedback-lite'),
+			'message'        => __('Surveys are hidden for administrator accounts to keep your survey results accurate. To see surveys on your site, use an incognito window or log out.', 'userfeedback-lite')
 		), $exclusion_reason);
 
 		// Enqueue banner assets
@@ -1098,14 +1100,14 @@ class UserFeedback_Frontend
 		?>
 		<div id="userfeedback-admin-banner" class="userfeedback-admin-banner" style="display:none;">
 			<div class="userfeedback-admin-banner__card">
-				<button class="userfeedback-admin-banner__close" type="button" aria-label="<?php esc_attr_e('Close', 'userfeedback'); ?>">
+				<button class="userfeedback-admin-banner__close" type="button" aria-label="<?php esc_attr_e('Close', 'userfeedback-lite'); ?>">
 					<svg width="12" height="12" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
 						<path d="M14 1.41L12.59 0L7 5.59L1.41 0L0 1.41L5.59 7L0 12.59L1.41 14L7 8.41L12.59 14L14 12.59L8.41 7L14 1.41Z" fill="currentColor"/>
 					</svg>
 				</button>
 				<div class="userfeedback-admin-banner__media">
 					<div class="userfeedback-admin-banner__logo">
-						<img src="<?php echo esc_url($logo_url); ?>" alt="<?php esc_attr_e('UserFeedback', 'userfeedback'); ?>">
+						<img src="<?php echo esc_url($logo_url); ?>" alt="<?php esc_attr_e('UserFeedback', 'userfeedback-lite'); ?>">
 					</div>
 					<div class="userfeedback-admin-banner__body">
 						<h3 class="userfeedback-admin-banner__title"></h3>
